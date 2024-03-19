@@ -6,6 +6,7 @@ import routerViews from './routes/views.router.js'
 import routerSession from './routes/session.router.js'
 import routerMocking from './routes/mocking.router.js'
 import handlebars from 'express-handlebars'
+import cors from 'cors'
 import __dirname from './utils.js'
 import cookieParser from 'cookie-parser'
 import initializePassport from './config/passport.config.js'
@@ -36,6 +37,7 @@ app.use('/apidocs', SwaggerUiExpress.serve, SwaggerUiExpress.setup(specs))
 
 app.use(cookieParser())
 app.use(express.json())
+app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 app.use('/static', express.static(__dirname + '/public'))
 
@@ -46,6 +48,8 @@ app.set('view engine', 'handlebars');
 
 initializePassport()
 app.use(passport.initialize())
+
+
 
 app.use('/api/session', routerSession)
 app.use('/api/products', routerProducts)
