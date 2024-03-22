@@ -61,12 +61,12 @@ export const sessionRegister = async (req, res) => {
 
 export const revalidateToken = async (req, res) => {
 
-  const { _id, first_name, last_name, email, role } = req;
+  const { _id, first_name, last_name, email, role } = req
 
-  const usuario = await UsersRepository.getUserByEmail(email);
+  const user = await usersService.getUserByEmail(email)
 
-  const token = generateToken({ _id, first_name, last_name, email, role });
+  const token = generateToken({ _id, first_name, last_name, email, role })
 
-  return res.json({ ok: true, usuario, token });
+  return res.json({ ok: true, user, token })
 
 }

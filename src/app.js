@@ -11,7 +11,6 @@ import sessionRouter from './routes/session.router.js'
 //UTLIDADES
 import cors from 'cors'
 import __dirname from './utils.js'
-import cookieParser from 'cookie-parser'
 // import swaggerJSDoc from 'swagger-jsdoc'
 // import SwaggerUiExpress from 'swagger-ui-express'
 import { addLogger, logger } from './utils/logger.js'
@@ -45,7 +44,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static(__dirname + '/public'))
 
 app.use(cors())
-app.use(cookieParser())
+
 
 
 //ENDPOINTS

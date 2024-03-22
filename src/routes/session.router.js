@@ -20,7 +20,7 @@ router.post('/login', [
   validateFields
 ], sessionLogin)
 
-router.post('/register',[
+router.post('/register', [
   check('first_name', 'El nombre es obligatorio').not().isEmpty(),
   check('last_name', 'El apellido es obligatorio').not().isEmpty(),
   check('email', 'El email es obligatorio').not().isEmpty(),
@@ -31,6 +31,6 @@ router.post('/register',[
   validateFields
 ], sessionRegister)
 
-router.get('/', validarJWT, revalidateToken)
+router.get('/renew', validarJWT, revalidateToken)
 
 export default router
