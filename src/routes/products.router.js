@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { check } from 'express-validator'
-import { addProduct, deleteProduct, getProductById, getProducts, updateProduct } from '../controllers/products.controller.js'
+import { addProduct, deleteProduct, getProductById, getProducts, mockingProducts, updateProduct } from '../controllers/products.controller.js'
 import { isAdmin, validarJWT, validateFields } from '../middlewares/auth.middlewares.js'
 import { uploader } from '../config/multer.js'
 import { existCode, existProduct } from '../utils/dbValidator.js'
@@ -15,6 +15,10 @@ router.get('/:pid', [
   check('pid', 'ID inválido').isMongoId(),
   validateFields
 ], getProductById)
+
+router.get('/mocking/products', [
+  validarJWT
+], mockingProducts)
 
 router.post('/', [
   validarJWT,
@@ -43,6 +47,6 @@ router.delete('/:pid', [
   isAdmin,
   check('pid', 'ID inválido').isMongoId(),
   check('pid').custom(existProduct),
-  validateFields], deleteProduct);
+  validateFields], deleteProduct)
 
 export default router

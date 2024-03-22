@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import {
+  revalidateToken,
   sessionLogin,
   sessionRegister,
 } from '../controllers/session.controller.js'
 
 import { check } from 'express-validator'
-import { validateFields } from '../middlewares/auth.middlewares.js'
+import { validarJWT, validateFields } from '../middlewares/auth.middlewares.js'
 import { existEmail } from '../utils/dbValidator.js'
 
 const router = Router()
@@ -30,19 +31,6 @@ router.post('/register',[
   validateFields
 ], sessionRegister)
 
-/* 
-router.get('/github', passport.authenticate('github', { scope: ['user:email'], session: false }), async (req, res) => { })
-
-router.get('/githubcallback', passport.authenticate('github', { failureRedirect: '/', session: false }), githubCallback) 
-
-router.get('/current', sessionCurrent)
-
-router.post('/change-password', changePasswordMail)
-
-router.put('/reset-password', resetPassword)
-
-router.put('/premium/:uid', switchRole)
-
-router.get('/logout', sessionLogout) */
+router.get('/', validarJWT, revalidateToken)
 
 export default router
