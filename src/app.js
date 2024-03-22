@@ -1,6 +1,8 @@
 import express from 'express'
-import { mongoDBConnection } from './database/mongoConfig.js'
+import cors from 'cors'
 
+//BASE DE DATOS
+import { mongoDBConnection } from './database/mongoConfig.js'
 
 //ROUTERS
 import productsRouter from './routes/products.router.js'
@@ -9,15 +11,11 @@ import sessionRouter from './routes/session.router.js'
 
 
 //UTLIDADES
-import cors from 'cors'
 import __dirname from './utils.js'
 // import swaggerJSDoc from 'swagger-jsdoc'
 // import SwaggerUiExpress from 'swagger-ui-express'
 import { addLogger, logger } from './utils/logger.js'
 import { PORT } from './config/config.js'
-
-
-
 
 
 const app = express()
@@ -38,14 +36,12 @@ const app = express()
 //  const specs = swaggerJSDoc(swaggerOptions)
 //  app.use('/apidocs', SwaggerUiExpress.serve, SwaggerUiExpress.setup(specs))
 
-app.use(cors())
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(__dirname + '/public'))
 
-
-
+app.use(cors())
 
 //ENDPOINTS
 app.use('/api/session', sessionRouter)
