@@ -8,7 +8,9 @@ export const addProduct = async (req, res) => {
   try {
     const { title, description, price, code, stock, category } = req.body
 
-    const { _id } = req
+    if (!title || !description || !price || !code || !stock || !category) return res.status(400).json({msg: 'Datos incompletos'})
+
+      const { _id } = req
 
     if (req.file) {
 
@@ -124,13 +126,13 @@ export const mockingProducts = async (req, res) => {
   try {
     faker.location = 'es';
     const products = Array.from({ length: 100 }, (_, index) => ({
-      _id:faker.string.uuid(),
-      title:faker.commerce.productName(),
+      _id: faker.string.uuid(),
+      title: faker.commerce.productName(),
       description: faker.lorem.sentence(),
       code: (index + 1).toString(),
-      price: faker.number.int({min:1, max:100}),
+      price: faker.number.int({ min: 1, max: 100 }),
       status: faker.datatype.boolean(),
-      stock: faker.number.int({min:1, max:100}),
+      stock: faker.number.int({ min: 1, max: 100 }),
       category: faker.commerce.department(),
       thumbnail: faker.image.url(),
     }))

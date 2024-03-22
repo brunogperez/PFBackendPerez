@@ -23,13 +23,13 @@ router.get('/mocking/products', [
 router.post('/', [
   validarJWT,
   isAdmin,
-  check('title', 'El campo es obligatorio').not().isEmpty(),
+/*   check('title', 'El campo es obligatorio').not().isEmpty(),
   check('description', 'El campo es obligatorio').not().isEmpty(),
   check('code').custom(existCode),
   check('price', 'El campo es obligatorio y numerico').not().isEmpty().isNumeric(),
   check('stock', 'El campo es obligatorio y numerico').not().isEmpty(),
   check('category', 'El campo es obligatorio').not().isEmpty(),
-  validateFields,
+  validateFields, */
   uploader.single('file')
 ], addProduct)
 
