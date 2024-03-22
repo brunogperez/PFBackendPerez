@@ -38,12 +38,12 @@ const app = express()
 //  const specs = swaggerJSDoc(swaggerOptions)
 //  app.use('/apidocs', SwaggerUiExpress.serve, SwaggerUiExpress.setup(specs))
 
+app.use(cors())
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(__dirname + '/public'))
 
-app.use(cors())
 
 
 
