@@ -1,4 +1,5 @@
 export default class UsersSendDTO {
+
   constructor(user) {
     this.name = user?.first_name || ''
     this.email = user?.email || ''
@@ -6,4 +7,5 @@ export default class UsersSendDTO {
     this.cart = user?.cart || {}
     this.role = user?.role || 'user'
   }
+  
 }

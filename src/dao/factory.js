@@ -6,7 +6,7 @@ export let Users
 export let Messages
 export let Tickets
 
-switch ('MONGO') {
+switch (PERSISTENCE) {
 
   case 'MONGO':
 

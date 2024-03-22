@@ -1,128 +1,184 @@
-import { cartsService, productsService, ticketsService } from "../services/index.js"
-import { PERSISTENCE } from "../config/config.js"
-import Mail from "../modules/mail.module.js"
-import moment from "moment"
+import { cartsService, productsService, ticketsService, usersService } from '../services/index.js'
+import { v4 as uuidv4 } from 'uuid'
+/* import { PERSISTENCE } from '../config/config.js'
+import Mail from '../modules/mail.module.js'
+import moment from 'moment'
 
-const mail = new Mail()
+const mail = new Mail() */
 
 export const getCartById = async (req, res) => {
   try {
+    const { _id } = req
     const { cid } = req.params
-    const result = await cartsService.getCartById(cid)
-    res.status(result ? 200 : 404).json({ status: result ? "success" : "error", payload: result })
+
+    const cart = await cartsService.getCartById(cid)
+    const user = await usersService.getUserById(_id)
+
+    if (!user) return res.status(400).json('El user no existe')
+    if (!(user.cart_id.toString() === cid)) return res.status(400).json('cart no valido')
+
+    res.json({ cart })
   }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    if (e.name == "CastError") return res.status(404).send("Not found")
-    res.status(500).send("Server error")
+  catch (error) {
+    req.logger.error('Error: ' + error)
+    if (error.name == 'CastError') return res.status(404).send('Not found')
+    res.status(500).send('Server error')
   }
 }
 
 export const addCart = async (req, res) => {
   try {
-    const result = await cartsService.addCart(req.body)
-    res.json({ status: result ? "success" : "error", payload: result })
+    const cart = await cartsService.addCart(req.body)
+    res.json({ status: cart ? 'success' : 'error', payload: cart })
   }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    res.status(500).send("Server error")
-  }
-}
-
-export const updateCartProducts = async (req, res) => {
-  try {
-    if (!req.body) return res.status(400).json({ status: "error", payload: "there aren't products specified" })
-    const result = await cartsService.updateCartProducts(req.params?.cid, req.body?.products)
-    res.status(result.modifiedCount ? 200 : 404).json({ stauts: result.modifiedCount ? "success" : "error", payload: result })
-  }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    if (e.name == "CastError") return res.status(404).send("Not found")
-    res.status(500).send("Server error")
+  catch (error) {
+    req.logger.error('Error: ' + error)
+    res.status(500).send('Server error')
   }
 }
 
-export const updateProductFromCart = async (req, res) => {
+export const addProductsInCart = async (req, res) => {
   try {
-    const { params: { pid, cid }, body: { quantity }, user: { user } } = req
+    const { _id } = req
+    const { cid, pid } = req.params
 
-    if (user.role != "user") {
-      const product = await productsService.getProductById(pid)
-      if (product.owner == (user?._id || user?.id)) return res.status(400).send("This is your product")
-    }
+    const user = await usersService.getUserById(_id)
+    const product = await productsService.getProductById(pid)
+    const cart = await cartsService.addProductsInCart(cid, pid)
+
+    if (!user) return res.status(400).json('El user no existe')
+    if (!(user.cart_id.toString() === cid)) return res.status(400).json('cart no valido')
+    if (!product) return res.status(400).json('Producto no existe')
+
+    if (!cart) return res.status(404).json(`el cart con id ${cid} no existe`)
+
+    return res.json({ msg: 'cart actualizado', cart })
 
 
-    const result = await cartsService.updateProductFromCart(pid, cid, quantity)
-    res.status(result.modifiedCount ? 200 : 404).json({ stauts: result.modifiedCount ? "success" : "error", payload: result })
+  } catch (error) {
+    return res.status(500).json('Hablar con admin')
   }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    if (e.name == "CastError") return res.status(404).send("Not found")
-    res.status(500).send("Server error")
+}
+
+export const updateProductsInCart = async (req, res) => {
+
+  try {
+
+    const { _id } = req;
+    const { cid, pid } = req.params
+    const { quantity } = req.body
+
+    const user = await usersService.getUserById(_id);
+    if (!user) return res.status(400).json('user no existe')
+
+    if (!(user.cart_id.toString() === cid)) return res.status(400).json('cart no valido')
+
+    const product = await productsService.getProductById(pid);
+    if (!product) return res.status(400).json('El producto no existe')
+
+    if (!quantity || !Number.isInteger(quantity))
+      return res.status(404).json('La cantidad es obligatoria y debe ser un numero entero')
+
+    const cart = await cartsService.updateProductsInCart(cid, pid, quantity)
+
+    if (!cart)
+      return res.status(404).json('No se pudo realizar esa operacion')
+
+    return res.json({ msg: 'Producto actualizado en el cart', cart })
+
+  } catch (error) {
+    return res.status(500).json({ msg: 'Hablar con admin' })
   }
 }
 
 export const deleteProductFromCart = async (req, res) => {
+
   try {
+
+    const { _id } = req
     const { cid, pid } = req.params
-    const result = await cartsService.deleteProductFromCart(cid, pid)
-    res.status(result.modifiedCount ? 200 : 404).json({ stauts: result.modifiedCount ? "success" : "error", payload: result })
-  }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    if (e.name == "CastError") return res.status(404).send("Not found")
-    res.status(500).send("Server error")
+
+    const user = await usersService.getUserById(_id);
+    if (!user) return res.status(400).json('El user no existe')
+
+    if (!(user.cart_id.toString() === cid)) return res.status(400).json('cart no valido')
+
+    const product = await productsService.getProductById(pid)
+    if (!product) return res.status(400).json('El producto no existe')
+
+    const cart = await cartsService.deleteProductFromCart(cid, pid)
+
+    return res.json({ msg: 'Producto eliminado del cart', cart })
+
+  } catch (error) {
+    return res.status(500).json({ msg: 'Hablar con admin' })
   }
 }
 
-export const deleteProducts = async (req, res) => {
+export const deleteCartProducts = async (req, res) => {
   try {
-    const result = await cartsService.deleteCartProducts(req.params?.cid)
-    res.status(result.modifiedCount ? 200 : 404).json({ stauts: result.modifiedCount ? "success" : "error", payload: result })
-  }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    if (e.name == "CastError") return res.status(404).send("Not found")
-    res.status(500).send("Server error")
+
+    const { _id } = req
+    const { cid, pid } = req.params
+
+    const user = await usersService.getUserById(_id);
+    if (!user) return res.status(400).json('El user no existe')
+
+    if (!(user.cart_id.toString() === cid)) return res.status(400).json('cart no valido')
+
+    const product = await productsService.getProductById(pid)
+    if (!product) return res.status(400).json('El producto no existe')
+
+    const cart = await cartsService.deleteCartProducts(cid)
+
+    return res.json({ msg: 'Productos eliminados del cart', cart })
+
+  } catch (error) {
+    return res.status(500).json({ msg: 'Hablar con admin' })
   }
 }
 
 export const purchaseCart = async (req, res) => {
   try {
-    const { cid } = req.params
-    const cart = await cartsService.getCartById(cid)
+    const { _id } = req;
+    const { cid } = req.params;
 
-    const unavailableProducts = []
-    const purchasedProducts = []
+    const user = await usersService.getUserById(_id);
 
+    if (!(user.cart_id.toString() === cid)) return res.status(400).json({ ok: false, msg: 'cart no es valido' });
 
-    await Promise.all(cart.products.map(async p => {
-      if (PERSISTENCE == "MONGO") p.product.stock >= p.quantity ? (await productsService.updateProduct(p.product._id, { stock: p.product.stock - p.quantity }), purchasedProducts.push(p)) : unavailableProducts.push(p)
-      else {
-        const product = await productsService.getProductById(p.id)
-        product.stock >= p.quantity ? (await productsService.updateProduct(product.id, { stock: product.stock - p.quantity }), purchasedProducts.push({ ...p, product })) : unavailableProducts.push(p)
-      }
-    }))
+    const cart = await cartsService.getCartById(cid);
 
+    if (!(cart.products.length > 0)) return res.status(400).json({ ok: false, msg: 'No se puede finalizar la compra, cart vacio', cart });
 
-    const ticket = {
-      purchase_datetime: moment().format("YYYY-MM-DD hh:mm:ss"),
-      amount: purchasedProducts.reduce((acc, p) => {
-        return acc + (p?.product?.price) * p.quantity
-      }, 0),
-      purchaser: req?.user?.user?.email
-    }
-    const ticketResult = await ticketsService.createTicket(ticket)
+    const productosStockValid = cart.products.filter(p => p.id.stock >= p.quantity)
 
-    const cartUpdateProducts = await cartsService.updateCartProducts(cid, unavailableProducts)
+    const actualizacionesQuantity = productosStockValid.map(p =>
+      productsService.updateProduct(p.id._id, { stock: p.id.stock - p.quantity }));
+    await Promise.all(actualizacionesQuantity);
 
-    mail.send(req?.user?.user?.email, "Compra realizada", "<h1>Relisazte la compra</h1>")
+    const items = productosStockValid.map(i => ({
+      title: i.id.title,
+      price: i.id.price,
+      quantity: i.quantity,
+      total: i.id.price * i.quantity
+    }));
 
-    res.json({ status: "success", payload: unavailableProducts.length ? unavailableProducts : ticketResult })
-  }
-  catch (e) {
-    req.logger.error("Error: " + e)
-    if (e.name == "CastError") return res.status(404).send("Not found")
-    res.status(500).send("Server error")
+    let amount = 0;
+    items.forEach(element => { amount += element.total });
+
+    const purchaser = user.email;
+
+    const code = uuidv4();
+
+console.log({items, amount, purchaser, code })
+
+    await ticketsService.createTicket({ items, amount, purchaser, code })
+
+    await cartsService.deleteCartProducts(user.cart_id)
+
+    return res.json({ ok: true, msg: 'Compra generada', ticket: { code, cliente: purchaser, items, amount } });
+  } catch (error) {
+    return res.status(500).json({ msg: "Hablar con admin" })
   }
 }

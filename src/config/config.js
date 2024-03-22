@@ -13,3 +13,4 @@ export const MAIL_PASS = process.env.MAIL_PASS
 export const JWT_CLIENT_ID = process.env.JWT_CLIENT_ID
 export const JWT_CLIENT_SECRET = process.env.JWT_CLIENT_SECRET
 export const JWT_SIGN = process.env.JWT_CLIENT_SIGN
+export const JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY

@@ -1,21 +1,56 @@
 import { Router } from 'express'
-import { addCart, deleteProductFromCart, deleteProducts, getCartById, purchaseCart, updateCartProducts, updateProductFromCart } from '../controllers/carts.controller.js'
-import { authorization } from '../middlewares/auth.middlewares.js'
-import passport from 'passport'
+import { check } from 'express-validator'
+import {
+  deleteProductFromCart,
+  getCartById,
+  addProductsInCart,
+  updateProductsInCart,
+  deleteCartProducts,
+  purchaseCart
+} from '../controllers/carts.controller.js'
+import { validarJWT, validateFields } from '../middlewares/auth.middlewares.js'
+import { existCart } from '../utils/dbValidator.js'
+
 
 const router = Router()
 
-router.get('/:cid', getCartById)
+router.get('/:cid', [
+  validarJWT,
+  check('cid', 'cartID inválido').isMongoId(),
+  validateFields
+], getCartById)
 
-router.post('/', addCart)
-router.post('/:cid/purchase', passport.authenticate('jwt', { session: false }), purchaseCart)
 
-router.put('/:cid', passport.authenticate('jwt', { session: false }), authorization(['premium', 'user']), updateCartProducts)
+router.post('/:cid/product/:pid', [
+  validarJWT,
+  check('cid', 'cartID inválido').isMongoId(),
+  check('pid', 'productID inválido').isMongoId(),
+  validateFields
+], addProductsInCart)
 
-router.put('/:cid/product/:pid', passport.authenticate('jwt', { session: false }), authorization(['premium', 'user']), updateProductFromCart)
+router.put('/:cid/product/:pid', [
+  validarJWT,
+  check('cid', 'cartID inválido').isMongoId(),
+  check('pid', 'productID inválido').isMongoId(),
+  validateFields
+], updateProductsInCart)
 
-router.delete('/:cid', passport.authenticate('jwt', { session: false }), authorization(['premium', 'user']), deleteProducts)
+router.delete('/:cid', validarJWT, deleteCartProducts)
 
-router.delete('/:cid/products/:pid', passport.authenticate('jwt', { session: false }), authorization(['premium', 'user']), deleteProductFromCart)
+router.delete('/:cid/product/:pid', [
+  validarJWT,
+  check('cid', 'cartID inválido').isMongoId(),
+  check('pid', 'productID inválido').isMongoId(),
+  validateFields
+], deleteProductFromCart)
+
+
+router.post('/:cid/purchase',[
+  validarJWT,
+  check('cid', 'cartID inválido').isMongoId(),
+  check('cid').custom(existCart),
+  validateFields
+], purchaseCart)
+
 
 export default router

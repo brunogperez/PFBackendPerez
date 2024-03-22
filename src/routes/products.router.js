@@ -1,19 +1,48 @@
 import { Router } from 'express'
-import { addProduct, deleteProduct, getProductById, getProducts, updateProduct } from '../controllers/products.controller.js';
-import { getFindParameters } from '../middlewares/products.middlewares.js';
-import { authorization } from '../middlewares/auth.middlewares.js';
-import passport from 'passport';
+import { check } from 'express-validator'
+import { addProduct, deleteProduct, getProductById, getProducts, updateProduct } from '../controllers/products.controller.js'
+import { isAdmin, validarJWT, validateFields } from '../middlewares/auth.middlewares.js'
+import { uploader } from '../config/multer.js'
+import { existCode, existProduct } from '../utils/dbValidator.js'
 
 const router = Router();
 
-router.get('/', getFindParameters, getProducts);
+router.get('/', validarJWT, getProducts);
 
-router.get('/:pid', getProductById);
+router.get('/:pid', [
+  validarJWT,
+  isAdmin,
+  check('pid', 'ID inválido').isMongoId(),
+  validateFields
+], getProductById)
 
-router.post('/', passport.authenticate('jwt', { session: false }), authorization(['admin', 'premium']), addProduct);
+router.post('/', [
+  validarJWT,
+  isAdmin,
+  check('title', 'El campo es obligatorio').not().isEmpty(),
+  check('description', 'El campo es obligatorio').not().isEmpty(),
+  check('code').custom(existCode),
+  check('price', 'El campo es obligatorio y numerico').not().isEmpty().isNumeric(),
+  check('stock', 'El campo es obligatorio y numerico').not().isEmpty(),
+  check('category', 'El campo es obligatorio').not().isEmpty(),
+  validateFields,
+  uploader.single('file')
+], addProduct)
 
-router.put('/:pid', passport.authenticate('jwt', { session: false }), authorization(['admin', 'premium']), updateProduct);
+router.put('/:pid', [
+  validarJWT,
+  isAdmin,
+  check('pid', 'ID inválido').isMongoId(),
+  check('pid').custom(existProduct),
+  validateFields,
+  uploader.single('file')
+], updateProduct)
 
-router.delete('/:pid', passport.authenticate('jwt', { session: false }), authorization(['admin', 'premium']), deleteProduct);
+router.delete('/:pid', [
+  validarJWT,
+  isAdmin,
+  check('pid', 'ID inválido').isMongoId(),
+  check('pid').custom(existProduct),
+  validateFields], deleteProduct);
 
-export default router;
+export default router

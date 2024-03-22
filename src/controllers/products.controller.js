@@ -1,88 +1,120 @@
-import { productsService } from '../services/index.js';
-import CustomError from '../errors/custom_errors.js';
+import { productsService } from '../services/index.js'
+import { cloudinary } from '../config/cloudinary.js';
+import { validFileExtension } from '../utils/validFileExtension.js'
 
-export const addProduct = async (req, res, next) => {
+
+export const addProduct = async (req, res) => {
   try {
-    const { body, user: { user } } = req;
+    const { title, description, price, code, stock, category } = req.body
 
-    const product = await productsService.getProductByFilter({
-      code: body.code,
-    });
+    const { _id } = req
 
-    if (product || !productsService.checkProductProperties(body)) {
-      CustomError.createProduct(body)
+    if (req.file) {
+
+      const isValidExtension = validFileExtension(req.file.originalname)
+
+      if (!isValidExtension)
+        return res.status(400).json({ msg: 'La extension no es valida' })
+
+      const { secure_url } = await cloudinary.uploader.upload(req.file.path)
+
+      req.body.thumbnails = secure_url
     }
 
-    (user.role != 'admin') && (body.owner = (user?._id || user?.id))
-    const result = await productsService.addProduct(body);
-    res.json({ status: 'success', payload: result });
-  } catch (e) {
-    next(e)
+    req.body.owner = _id
+    const producto = await productsService.addProduct({ ...req.body })
+
+    return res.json({ producto })
+
+  } catch (error) {
+    return res.status(500).json({ msg: "Hablar con admin" })
   }
-};
+}
 
 export const getProducts = async (req, res) => {
   try {
-    const result = await productsService.getProducts(
-      req?.queryFindParameters,
-      req?.optionsPaginate
-    );
-    res.json({ status: 'success', payload: result.docs });
-  } catch (e) {
-    req.logger.error('Error: ' + e);
-    res.status(500).send('Server error');
+    const result = await productsService.getProducts({ ...req.query });
+    return res.json({ result });
+  } catch (error) {
+    return res.status(500).json({ msg: 'Hablar con admin' })
   }
-};
+}
 
 export const getProductById = async (req, res) => {
   try {
-    const result = await productsService.getProductById(req.params?.pid);
-    res.json({ status: 'success', payload: result });
-  } catch (e) {
-    req.logger.error('Error: ' + e);
-    if (e.name == 'CastError') return res.status(404).send('Not found');
-    res.status(500).send('Server error');
+    const { pid } = req.params
+    const producto = await productsService.getProductById(pid)
+    if (!producto)
+      return res.status(404).json({ msg: `El producto con id ${pid} no existe` })
+    return res.json({ producto })
+  } catch (error) {
+    return res.status(500).json({ msg: 'Hablar con admin' })
   }
-};
+}
 
 export const updateProduct = async (req, res) => {
   try {
-    const { body } = req
-    const { user } = req?.user
+    const { pid } = req.params;
+    const { _id, ...rest } = req.body;
 
-    if (user.role != 'admin') {
-      const product = await productsService.getProductById(req?.params?.pid)
-      if (product?.owner != (user?._id || user?.id) || !product?.owner) return res.status(403).json({ error: 'No permission to update this product' })
-    }
+    const product = await productsService.getProductById(pid);
 
-    if (body._id || body.code)
-      return res.status(400).json({ status: 'error', payload: 'Invalid properties to update' })
-    const result = await productsService.updateProduct(req.params?.pid, {
-      ...body,
-    });
-    res.json({ status: 'success', payload: result })
-  } catch (e) {
-    req.logger.error('Error: ' + e);
-    if (e.name == 'CastError') return res.status(404).send('Not found');
-    res.status(500).send('Server error');
-  }
+    if (!product)
+        return res.status(404).json({ msg: `El producto con Id ${pid} no existe!` })
+
+    if (req.file) {
+
+        const isValidExtension = validFileExtension(req.file.originalname);
+
+        if (!isValidExtension)
+            return res.status(400).json({ msg: 'La extension no es valida' });
+
+        if (product.thumbnails) {
+            const url = product.thumbnails.split('/');
+            const nombre = url[url.length - 1];
+            const [id] = nombre.split('.');
+            cloudinary.uploader.destroy(id);
+        }
+
+        const { secure_url } = await cloudinary.uploader.upload(req.file.path);
+        rest.thumbnails = secure_url;
+    };
+
+    const producto = await productsService.updateProduct(pid, rest);
+
+    if (producto)
+        return res.json({ msg: 'Producto actualizado', producto })
+    return res.status(404).json({ msg: `No se pudo actualizar el producto con ${pid}` })
+} catch (error) {
+    return res.status(500).json({ msg: "Hablar con admin" })
+}
 };
 
 export const deleteProduct = async (req, res) => {
   try {
-    const { user } = req?.user
+    const { pid } = req.params;
+    const {role, _id} = req;
 
-    if (user.role != 'admin') {
-      const product = await productsService.getProductById(req?.params?.pid)
-      if (product?.owner != (user?._id || user?.id)) return res.status(403).json({ error: 'No permission to delete this product' })
+    if(role === 'premium'){
+        const producto = await productsService.getProductById(pid);
+        if(!producto) return res.status(404).json({ msg: `El producto con Id ${pid} no existe!` });
+
+        if(producto.owner.toString() === _id){
+            const producto = await productsService.deleteProduct(pid);
+            if (producto)
+                return res.json({ msg: 'Producto Eliminado', producto });
+            return res.status(404).json({ msg: `No se pudo eliminar el producto con ${pid}` });
+        } 
     }
+    
+    const producto = await productsService.deleteProduct(pid)
+    //cloudinary.uploader.destroy(pid);
 
-    const result = await productsService.deleteProduct(req.params?.pid)
-    res.json({ status: 'success', payload: result })
-  }
-  catch (e) {
-    req.logger.error('Error: ' + e);
-    if (e.name == 'CastError') return res.status(404).send('Not found');
-    res.status(500).send('Server error');
-  }
+    if (producto)
+        return res.json({ msg: 'Producto Eliminado', producto })
+    return res.status(404).json({ msg: `No se pudo eliminar el producto con ${pid}` })
+} catch (error) {
+    logger.error('deleteProduct ->',error)
+    return res.status(500).json({ msg: "Hablar con admin" })
+}
 }

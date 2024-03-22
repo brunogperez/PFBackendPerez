@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import { MAIL_USER, MAIL_PASS } from '../config/config.js';
+import nodemailer from 'nodemailer'
+import { MAIL_USER, MAIL_PASS } from '../config/config.js'
 
 export default class Mail {
   constructor() {

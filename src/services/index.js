@@ -1,13 +1,13 @@
 import { Carts, Products, Users, Messages, Tickets } from '../dao/factory.js'
 
-import CartsService from './carts.services.js'
-import ProductsService from './products.services.js'
-import UsersService from './users.services.js'
-import MessagesService from './messages.services.js'
-import TicketsService from './tickets.services.js'
+import CartsRepository from './carts.repository.js'
+import ProductsRepository from './products.repository.js'
+import UsersRepository from './users.repository.js'
+import MessagesRepository from './messages.repository.js'
+import TicketsRepository from './tickets.repository.js'
 
-export const cartsService = new CartsService(new Carts())
-export const productsService = new ProductsService(new Products())
-export const usersService = new UsersService(new Users())
-export const messagesService = new MessagesService(new Messages())
-export const ticketsService = new TicketsService(new Tickets())
+export const cartsService = new CartsRepository(new Carts())
+export const productsService = new ProductsRepository(new Products())
+export const usersService = new UsersRepository(new Users())
+export const messagesService = new MessagesRepository(new Messages())
+export const ticketsService = new TicketsRepository(new Tickets())
