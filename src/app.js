@@ -20,28 +20,11 @@ import { PORT } from './config/config.js'
 
 const app = express()
 
-// app.use(addLogger)
-
-//  const swaggerOptions = {
-//    definition: {
-//      openapi: '3.0.1',
-//      info: {
-//        title: 'Coderhouse Ecommerce Documentacion',
-//        description: 'Este es un proyecto educativo que sirve como api para un simple ecommerce.'
-//      }
-//    },
-//    apis: [`${__dirname}/docs/**/*.yaml`]
-//  }
-
-//  const specs = swaggerJSDoc(swaggerOptions)
-//  app.use('/apidocs', SwaggerUiExpress.serve, SwaggerUiExpress.setup(specs))
-
+app.use(cors())
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(__dirname + '/public'))
-
-app.use(cors())
 
 //ENDPOINTS
 app.use('/api/session', sessionRouter)
