@@ -1,5 +1,5 @@
 {
-  "name": "PFBackend",
+  "name": "pf-backend-perez",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,7 @@
     "start": "node src/app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Bruno Perez",
   "license": "ISC",
   "dependencies": {
     "@faker-js/faker": "^8.4.0",
