@@ -1,8 +1,11 @@
 import { Router } from 'express'
 import {
+  changePassword,
+  resetPassword,
   revalidateToken,
   sessionLogin,
   sessionRegister,
+  validateTokenPass,
 } from '../controllers/session.controller.js'
 
 import { check } from 'express-validator'
@@ -15,8 +18,8 @@ router.post('/login', [
 
   check('email', 'El email es obligatorio').not().isEmpty(),
   check('email', 'El email tiene el formato incorrecto').isEmail(),
-  check('password', 'El password es obligatorio').not().isEmpty(),
-  check('password', 'El password debe tener al menos 6 caracteres').isLength({ min: 6 }),
+  check('password', 'La contraseña es obligatorio').not().isEmpty(),
+  check('password', 'La contraseña debe tener al menos 6 caracteres').isLength({ min: 6 }),
   validateFields
 ], sessionLogin)
 
@@ -26,11 +29,29 @@ router.post('/register', [
   check('email', 'El email es obligatorio').not().isEmpty(),
   check('email', 'El email tiene el formato incorrecto').isEmail(),
   check('email').custom(existEmail),
-  check('password', 'El password es obligatorio').not().isEmpty(),
-  check('password', 'El password debe tener al menos 6 caracteres').isLength({ min: 6 }),
+  check('password', 'La contraseña es obligatorio').not().isEmpty(),
+  check('password', 'La contraseña debe tener al menos 6 caracteres').isLength({ min: 6 }),
   validateFields
 ], sessionRegister)
 
 router.get('/renew', validarJWT, revalidateToken)
+
+router.post('/change-password', [
+  check('email','El email es obligatorio').not().isEmpty(),
+  check('email','El email debe ser valido').isEmail(),
+  validateFields
+], changePassword)
+
+router.get('/reset-password', [
+check('token', 'El token es olbligatorio').not().isEmpty(),
+validateFields
+], validateTokenPass)
+
+router.post('/reset-password', [
+  check('token', 'El token es olbligatorio').not().isEmpty(),
+  check('password', 'La contraseña es obligatorio').not().isEmpty(),
+  check('password', 'La contraseña debe tener al menos 6 caracteres').isLength({ min: 6 }),
+validateFields
+], resetPassword)
 
 export default router

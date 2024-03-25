@@ -17,3 +17,4 @@ export const JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY
 export const CLOUD_NAME = process.env.CLOUD_NAME
 export const CLOUD_API_KEY = process.env.CLOUD_API_KEY
 export const CLOUD_API_SECRET = process.env.CLOUD_API_SECRET
+export const URL_RESET_PASS = process.env.URL_RESET_PASS

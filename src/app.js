@@ -9,19 +9,19 @@ import productsRouter from './routes/products.router.js'
 import cartsRouter from './routes/carts.router.js'
 import sessionRouter from './routes/session.router.js'
 
-
 //UTLIDADES
 import __dirname from './utils.js'
 // import swaggerJSDoc from 'swagger-jsdoc'
 // import SwaggerUiExpress from 'swagger-ui-express'
-import { addLogger, logger } from './utils/logger.js'
+import { logger } from './utils/logger.js'
 import { PORT } from './config/config.js'
+import { requestUrl } from './middlewares/logger.middlewares.js'
 
 
 const app = express()
 
 app.use(cors())
-
+app.use(requestUrl)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(__dirname + '/public'))

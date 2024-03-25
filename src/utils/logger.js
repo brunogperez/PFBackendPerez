@@ -1,40 +1,45 @@
 import winston from 'winston'
 import { NODE_ENV } from '../config/config.js'
 
-const customLevels = {
-  levels: {
-    fatal: 0,
-    error: 1,
-    warning: 2,
-    info: 3,
-    http: 4,
-    debug: 5
-  }
-}
+//const levels = {
+//    error: 0,
+//    warn: 1,
+//    info: 2,
+//    http: 3,
+//    verbose: 4,
+//    debug: 5,
+//    silly: 6
+//};
 
-const isInDevelopment = NODE_ENV == 'DEVELOPMENT'
-
-const firstLevel = isInDevelopment ? 'debug' : 'info'
-
-const transports = [
-  new winston.transports.Console({
-    level: firstLevel,
-    format: winston.format.simple()
-  })
-]
-
-!isInDevelopment && transports.push(new winston.transports.File({ filename: './errors.log', level: 'warning' }))
-
-
-
-export const logger = winston.createLogger({
-  levels: customLevels.levels,
-  transports
+const devLogger = winston.createLogger({
+  level: 'debug',
+  transports: [
+    new winston.transports.Console({
+      level: 'debug',
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+      ),
+    }),
+  ],
 })
 
-export const addLogger = (req, res, next) => {
-  req.logger = logger
-  req.logger.http(`[${req?.method}] ${req?.url} - ${new Date().toLocaleTimeString()}`)
+const prodLogger = winston.createLogger({
+  level: 'info',
+  transports: [
+    new winston.transports.Console({
+      level: 'info',
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+      ),
+    }),
+    new winston.transports.File({
+      filename: 'errors.log',
+      level: 'error',
+      format: winston.format.simple()
+    }),
+  ],
+})
 
-  next()
-}
+export const logger = NODE_ENV === 'PRODUCTION' ? prodLogger : devLogger

@@ -8,7 +8,7 @@ export const mongoDBConnection = async () => {
     await mongoose.connect(MONGO_URL, { dbName: MONGO_DBNAME })
     logger.info('DB Connected!')
   } catch (error) {
-    logger.fatal('Fatal: ERROR TRYING TO CONNECT MONGO DB')
+    logger.error('ERROR TRYING TO CONNECT MONGO DB')
     process.exit(1)
   }
 }

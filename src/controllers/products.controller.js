@@ -2,15 +2,16 @@ import { productsService } from '../services/index.js'
 import { cloudinary } from '../config/cloudinary.js';
 import { validFileExtension } from '../utils/validFileExtension.js'
 import { faker } from '@faker-js/faker';
+import { logger } from '../utils/logger.js';
 
 
 export const addProduct = async (req, res) => {
   try {
     const { title, description, price, code, stock, category } = req.body
 
-    if (!title || !description || !price || !code || !stock || !category) return res.status(400).json({msg: 'Datos incompletos'})
+    if (!title || !description || !price || !code || !stock || !category) return res.status(400).json({ msg: 'Datos incompletos' })
 
-      const { _id } = req
+    const { _id } = req
 
     if (req.file) {
 
@@ -30,6 +31,7 @@ export const addProduct = async (req, res) => {
     return res.json({ producto })
 
   } catch (error) {
+    logger.error(error)
     return res.status(500).json({ msg: "Hablar con admin" })
   }
 }
@@ -46,10 +48,10 @@ export const getProducts = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const { pid } = req.params
-    const producto = await productsService.getProductById(pid)
-    if (!producto)
+    const product = await productsService.getProductById(pid)
+    if (!product)
       return res.status(404).json({ msg: `El producto con id ${pid} no existe` })
-    return res.json({ producto })
+    return res.json({ product })
   } catch (error) {
     return res.status(500).json({ msg: 'Hablar con admin' })
   }
@@ -91,30 +93,30 @@ export const updateProduct = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ msg: "Hablar con admin" })
   }
-};
+}
 
 export const deleteProduct = async (req, res) => {
   try {
-    const { pid } = req.params;
-    const { role, _id } = req;
+    const { pid } = req.params
+    const { role, _id } = req
 
     if (role === 'premium') {
-      const producto = await productsService.getProductById(pid);
-      if (!producto) return res.status(404).json({ msg: `El producto con Id ${pid} no existe!` });
+      const product = await productsService.getProductById(pid)
+      if (!product) return res.status(404).json({ msg: `El producto con Id ${pid} no existe!` })
 
-      if (producto.owner.toString() === _id) {
-        const producto = await productsService.deleteProduct(pid);
-        if (producto)
-          return res.json({ msg: 'Producto Eliminado', producto });
-        return res.status(404).json({ msg: `No se pudo eliminar el producto con ${pid}` });
+      if (product.owner.toString() === _id) {
+        const product = await productsService.deleteProduct(pid)
+        if (product)
+          return res.json({ msg: 'Producto Eliminado', product })
+        return res.status(404).json({ msg: `No se pudo eliminar el producto con ${pid}` })
       }
     }
 
-    const producto = await productsService.deleteProduct(pid)
+    const product = await productsService.deleteProduct(pid)
     //cloudinary.uploader.destroy(pid);
 
-    if (producto)
-      return res.json({ msg: 'Producto Eliminado', producto })
+    if (product)
+      return res.json({ msg: 'Producto Eliminado', product })
     return res.status(404).json({ msg: `No se pudo eliminar el producto con ${pid}` })
   } catch (error) {
     logger.error('deleteProduct ->', error)
@@ -138,6 +140,6 @@ export const mockingProducts = async (req, res) => {
     }))
     return res.json({ products })
   } catch (error) {
-    console.log(error)
+    logger.error(error)
   }
 }

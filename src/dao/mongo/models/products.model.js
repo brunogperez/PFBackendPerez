@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   thumbnails: { type: String },
   owner:{
       type:mongoose.Schema.Types.ObjectId,
-      ref:'User', 
+      ref:'users', 
       required: [true, 'El owner es obligatorio']
   }
 });

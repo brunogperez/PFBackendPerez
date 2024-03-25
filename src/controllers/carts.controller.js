@@ -1,5 +1,6 @@
 import { cartsService, productsService, ticketsService, usersService } from '../services/index.js'
 import { v4 as uuidv4 } from 'uuid'
+import { logger } from '../utils/logger.js'
 /* import { PERSISTENCE } from '../config/config.js'
 import Mail from '../modules/mail.module.js'
 import moment from 'moment'
@@ -171,7 +172,7 @@ export const purchaseCart = async (req, res) => {
 
     const code = uuidv4();
 
-console.log({items, amount, purchaser, code })
+    //console.log({ items, amount, purchaser, code })
 
     await ticketsService.createTicket({ items, amount, purchaser, code })
 
@@ -179,6 +180,7 @@ console.log({items, amount, purchaser, code })
 
     return res.json({ ok: true, msg: 'Compra generada', ticket: { code, cliente: purchaser, items, amount } });
   } catch (error) {
+    logger.error(error)
     return res.status(500).json({ msg: "Hablar con admin" })
   }
 }

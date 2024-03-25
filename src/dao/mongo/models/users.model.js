@@ -23,13 +23,13 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   cart_id: { type: mongoose.Schema.Types.ObjectId, ref: 'carts' },
-  role: { type: String, default: 'user' }
+  role: { type: String, default: 'user', enum: ['user', 'admin', 'premium'] }
 })
 
 userSchema.set('toJSON', {
   transform: function (doc, ret) {
-      delete ret.__v; 
-      return ret;
+    delete ret.__v
+    return ret
   }
 });
 

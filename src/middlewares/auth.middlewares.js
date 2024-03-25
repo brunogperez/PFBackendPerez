@@ -1,6 +1,7 @@
 import { validationResult } from 'express-validator'
 import jwt from 'jsonwebtoken'
 import { JWT_PRIVATE_KEY } from '../config/config.js'
+import { logger } from '../utils/logger.js'
 
 export const isAdmin = (req, res, next) => {
   if (!(req.role === 'admin' || req.role === 'premium'))
@@ -34,8 +35,8 @@ export const validarJWT = (req, res, next) => {
     req.last_name = last_name
 
   } catch (error) {
-    req.logger.error(error);
-    return res.status(401).json({ ok: false, msg: 'Token no valido' });
+    logger.error(error)
+    return res.status(401).json({ ok: false, msg: 'Token no valido' })
   }
-  next();
+  next()
 }
